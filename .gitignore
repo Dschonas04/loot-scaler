@@ -1,2 +1,5 @@
+build/
+.gradle/
+libs/
 __pycache__/
 *.pyc
