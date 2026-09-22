@@ -13,7 +13,7 @@
   "license": "MIT",
   "environment": "*",
   "entrypoints": {
-    "main": ["de.jonasgroll.lootscaler.LootScaler"]
+    "main": ["io.github.dschonas04.lootscaler.LootScaler"]
   },
   "mixins": ["loot-scaler.mixins.json"],
   "depends": {

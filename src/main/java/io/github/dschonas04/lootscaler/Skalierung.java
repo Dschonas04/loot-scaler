@@ -1,4 +1,4 @@
-package de.jonasgroll.lootscaler;
+package io.github.dschonas04.lootscaler;
 
 import java.util.function.Consumer;
 import net.minecraft.core.registries.BuiltInRegistries;

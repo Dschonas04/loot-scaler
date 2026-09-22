@@ -1,4 +1,4 @@
-package de.jonasgroll.lootscaler;
+package io.github.dschonas04.lootscaler;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;

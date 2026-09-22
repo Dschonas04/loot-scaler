@@ -1,4 +1,4 @@
-package de.jonasgroll.lootscaler;
+package io.github.dschonas04.lootscaler;
 
 import java.io.IOException;
 import java.nio.file.Files;

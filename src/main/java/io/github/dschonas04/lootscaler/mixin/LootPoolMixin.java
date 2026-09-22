@@ -1,6 +1,6 @@
-package de.jonasgroll.lootscaler.mixin;
+package io.github.dschonas04.lootscaler.mixin;
 
-import de.jonasgroll.lootscaler.Skalierung;
+import io.github.dschonas04.lootscaler.Skalierung;
 import java.util.function.Consumer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
