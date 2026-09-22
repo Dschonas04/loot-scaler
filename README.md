@@ -1,8 +1,10 @@
-# Loot Scaler
+# Loot Scaler — a Minecraft mod
 
-**A Minecraft mod (Fabric) that makes ores and mobs give less, so a world lasts longer.**
+**Fabric mod. Ores and mobs give less, so a world lasts longer.**
 
-Drop the jar into `mods`, set two numbers in `config/loot-scaler.properties`, done. It works with modded ores and mobs out of the box, because it does not carry a list of loot tables around — it sits in the code path every loot table goes through.
+For Minecraft 1.21+ on Fabric, server or single player. No Fabric API, no dependencies.
+
+Drop the jar into `mods`, set two numbers in `config/loot-scaler.properties`, done. Modded ores and mobs are covered out of the box, because the mod carries no list of loot tables — it sits in the code path that every loot table goes through.
 
 ```properties
 ores = 0.7         # keep 70 % of the extra items an ore gives
@@ -38,7 +40,7 @@ Untouched: experience, silk touch, chest and fishing loot, and block drops that 
 3. Start once. The config is written to `config/loot-scaler.properties` with comments.
 4. Change the numbers, restart. No Fabric API needed.
 
-## Build it yourself
+## Build the mod yourself
 
 Minecraft 26.2 ships with readable class names, so this is a plain Gradle build against the server jar — no mappings, no remapping, no Loom:
 
@@ -51,10 +53,6 @@ The jar lands in `build/libs/`. On older versions, which are obfuscated, you nee
 ## How it works
 
 One mixin, one wrapper. Every loot pool writes its items into a consumer; the mod puts itself in front of that consumer and rewrites the stack sizes on the way through. Whether something counts as an ore or a mob is decided from the loot context — a block state means ore (by its id), a living entity means mob — so no loot table is ever edited and mod content is covered automatically.
-
-## The data pack alternative
-
-If you cannot install mods, [`datapack-generator/`](datapack-generator) holds a Python script that writes a data pack with the same effect: it reads the loot tables out of your server jar and mod jars and rewrites them. Same config idea, but it has to be re-run after every game or mod update, and it cannot see mods that add loot at runtime. The mod is the better option where you have the choice.
 
 ## License
 
