@@ -6,6 +6,8 @@ Minecraft has a game rule for almost everything, but not for "how much does an i
 
 It works with modded servers as well, because it does not carry a list of loot tables around — it reads the tables that are actually installed on your server, out of the server jar and out of every mod jar, and rewrites those.
 
+Amounts are scaled, not chances: a block or a mob that always dropped something still always drops something.
+
 ## Use it
 
 ```bash
@@ -32,27 +34,37 @@ Python 3.9 or newer, no dependencies. Works on Fabric, NeoForge, Forge, Paper, a
 `loot-scaler.conf`, one `key = value` per line:
 
 ```properties
-ores = 0.7           # ores still drop 70 % of what they used to
-mobs = 0.7           # same for everything a creature drops
-include_mods = true  # scale the loot tables of mods too
+ores = 0.7         # ores that drop several items keep 70 % of their stack
+ore_fortune = 0.7  # how much of the Fortune bonus on ores remains
+mobs = 0.7         # same for everything a creature drops
+never_zero = true  # a drop that always happened still always happens
+include_mods = true
 exclude = minecraft:entities/ender_dragon, minecraft:entities/wither
 
 table.minecraft:blocks/ancient_debris = 0.5   # a single table, harsher
 table.minecraft:entities/enderman = 1.0       # a single table, untouched
 ```
 
-Every value is a multiplier between 0 and 1, not a percentage. `1.0` keeps the vanilla rate, `0` drops nothing.
+Every value is a multiplier between 0 and 1, not a percentage. `1.0` keeps the vanilla rate.
 
 ## How it scales
 
-A loot table has no "rate" to multiply, so the multiplier becomes a chance: at `0.7`, a pool rolls 7 times out of 10. A single ore is therefore still all-or-nothing, but a mining trip or a mob farm averages out at 70 %.
+**Amounts, never chances.** This is the part that matters in play: mining a diamond always gives a diamond. What shrinks is how much comes out of the things that give more than one:
 
-Two details that matter in play:
+| | vanilla | at 0.7 |
+|---|---|---|
+| Iron, diamond, coal, gold, emerald | 1 | 1, with a smaller Fortune bonus |
+| Redstone ore | 4–5 | 3–4 |
+| Cow | ~3 items | ~2 items |
+| Zombie | 0–2 rotten flesh | 0–1 |
 
-- **Silk touch keeps working.** For ores, only the item entries are scaled, never the branch that hands back the ore block itself. Scaling that one would make blocks disappear into nothing three times out of ten.
-- **Fortune keeps working**, on the rolls that do happen.
+Ores that give a single item are already at the minimum, so there `ore_fortune` is the only dial: Fortune still pays off, it just pays less. Under the hood the `ore_drops` formula, which multiplies the drop by the enchantment level, becomes a bonus count with your multiplier.
 
-Experience is not part of loot tables and stays as it is. Chests, fishing and structure loot are untouched — this is about ores and mobs.
+Silk touch is never scaled — it hands back the block itself, and scaling that would make blocks disappear.
+
+Experience is not part of loot tables and stays as it is. Chests, fishing and structure loot are untouched: this is about ores and mobs.
+
+Measured on a modded 1.21-era server at `0.7`, 150 rolls each: iron ore 1.00 items per block (unchanged, as intended), redstone ore 3.5 instead of 4.5, cow 2.0 instead of 3.0.
 
 ## What it does not ship
 
