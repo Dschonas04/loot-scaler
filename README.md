@@ -1,78 +1,60 @@
-# loot-scaler
+# Loot Scaler
 
-Make ores and mobs drop less, so a world lasts longer.
+**A Minecraft mod (Fabric) that makes ores and mobs give less, so a world lasts longer.**
 
-Minecraft has a game rule for almost everything, but not for "how much does an iron ore give". This is a small Python script that writes a data pack for you: you set two numbers in a config file, drop the result into `world/datapacks`, and reload.
-
-It works with modded servers as well, because it does not carry a list of loot tables around — it reads the tables that are actually installed on your server, out of the server jar and out of every mod jar, and rewrites those.
-
-Amounts are scaled, not chances: a block or a mob that always dropped something still always drops something.
-
-## Use it
-
-```bash
-git clone https://github.com/Dschonas04/loot-scaler
-cd loot-scaler
-$EDITOR loot-scaler.conf
-
-python3 loot_scaler.py \
-  --server /path/to/server/versions/1.21.9/server-1.21.9.jar \
-  --mods   /path/to/server/mods \
-  --out    /path/to/server/world/datapacks/loot-scaler
-```
-
-Then, on the server console:
-
-```
-/reload
-```
-
-Python 3.9 or newer, no dependencies. Works on Fabric, NeoForge, Forge, Paper, and vanilla — it only produces a data pack.
-
-## Configure it
-
-`loot-scaler.conf`, one `key = value` per line:
+Drop the jar into `mods`, set two numbers in `config/loot-scaler.properties`, done. It works with modded ores and mobs out of the box, because it does not carry a list of loot tables around — it sits in the code path every loot table goes through.
 
 ```properties
-ores = 0.7         # ores that drop several items keep 70 % of their stack
-ore_fortune = 0.7  # how much of the Fortune bonus on ores remains
-mobs = 0.7         # same for everything a creature drops
-never_zero = true  # a drop that always happened still always happens
-include_mods = true
-exclude = minecraft:entities/ender_dragon, minecraft:entities/wither
-
-table.minecraft:blocks/ancient_debris = 0.5   # a single table, harsher
-table.minecraft:entities/enderman = 1.0       # a single table, untouched
+ores = 0.7         # keep 70 % of the extra items an ore gives
+mobs = 0.7         # keep 70 % of what a creature drops
+never_zero = true  # a drop of one never becomes nothing
+debug = false      # log every scaled drop
 ```
 
-Every value is a multiplier between 0 and 1, not a percentage. `1.0` keeps the vanilla rate.
+## Amounts, never chances
 
-## How it scales
+This is the part that matters in play: **mining a single diamond always gives a diamond.** The mod never rolls a die on whether a drop happens — it only makes the piles smaller:
 
-**Amounts, never chances.** This is the part that matters in play: mining a diamond always gives a diamond. What shrinks is how much comes out of the things that give more than one:
+| | vanilla | at 0.7 | measured |
+|---|---|---|---|
+| Iron, diamond, coal, gold, emerald | 1 | 1, with a smaller Fortune bonus | 1.00 |
+| Redstone ore | 4–5 | 1 + 70 % of the rest | 3.45 |
+| Lapis ore | 4–9 | 1 + 70 % of the rest | 4.88 |
+| Cow | ~3 items | 70 % | 2.26 |
+| Zombie | ~1.1 items | 70 % | 0.80 |
 
-| | vanilla | at 0.7 |
-|---|---|---|
-| Iron, diamond, coal, gold, emerald | 1 | 1, with a smaller Fortune bonus |
-| Redstone ore | 4–5 | 3–4 |
-| Cow | ~3 items | ~2 items |
-| Zombie | 0–2 rotten flesh | 0–1 |
+Numbers from 120 rolls each on a modded 26.2 server.
 
-Ores that give a single item are already at the minimum, so there `ore_fortune` is the only dial: Fortune still pays off, it just pays less. Under the hood the `ore_drops` formula, which multiplies the drop by the enchantment level, becomes a bonus count with your multiplier.
+For **ores** the first item is untouchable and only the surplus is scaled — the Fortune bonus, and the ores that give several items at once. For **mobs** the amount is scaled outright, since those are ranges anyway; `never_zero` keeps a guaranteed drop guaranteed.
 
-Silk touch is never scaled — it hands back the block itself, and scaling that would make blocks disappear.
+Fractions are rounded with the loot context's own random source: 1.4 items means "one, and a second one four times out of ten", not a silently swallowed remainder.
 
-Experience is not part of loot tables and stays as it is. Chests, fishing and structure loot are untouched: this is about ores and mobs.
+Untouched: experience, silk touch, chest and fishing loot, and block drops that are not ores.
 
-Measured on a modded 1.21-era server at `0.7`, 150 rolls each: iron ore 1.00 items per block (unchanged, as intended), redstone ore 3.5 instead of 4.5, cow 2.0 instead of 3.0.
+## Install
 
-## What it does not ship
+1. Fabric Loader 0.19 or newer, Minecraft 1.21 or newer.
+2. Put `loot-scaler-<version>.jar` into `mods/`. Server side is enough for multiplayer; in single player it goes into your own mods folder.
+3. Start once. The config is written to `config/loot-scaler.properties` with comments.
+4. Change the numbers, restart. No Fabric API needed.
 
-No game files. Loot tables belong to Mojang and to the mod authors, so this repository contains the generator only; the data pack is built on your machine from your own installation. That also means the pack always matches your versions.
+## Build it yourself
 
-## Rebuild after an update
+Minecraft 26.2 ships with readable class names, so this is a plain Gradle build against the server jar — no mappings, no remapping, no Loom:
 
-Updating the game or a mod can change loot tables. Run the script again with the new jars, then `/reload`. Old copies of tables that no longer exist do no harm, but a fresh build keeps the pack honest — delete the output directory first if you want it clean.
+```bash
+gradle build -Pminecraft_jar=/path/to/server-26.2.jar
+```
+
+The jar lands in `build/libs/`. On older versions, which are obfuscated, you need a Loom setup with mappings instead; the mixin itself targets `LootPool#addRandomItems`, which has been stable for a long time.
+
+## How it works
+
+One mixin, one wrapper. Every loot pool writes its items into a consumer; the mod puts itself in front of that consumer and rewrites the stack sizes on the way through. Whether something counts as an ore or a mob is decided from the loot context — a block state means ore (by its id), a living entity means mob — so no loot table is ever edited and mod content is covered automatically.
+
+## The data pack alternative
+
+If you cannot install mods, [`datapack-generator/`](datapack-generator) holds a Python script that writes a data pack with the same effect: it reads the loot tables out of your server jar and mod jars and rewrites them. Same config idea, but it has to be re-run after every game or mod update, and it cannot see mods that add loot at runtime. The mod is the better option where you have the choice.
 
 ## License
 

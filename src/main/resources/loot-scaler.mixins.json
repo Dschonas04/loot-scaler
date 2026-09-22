@@ -1,0 +1,9 @@
+{
+  "required": true,
+  "package": "de.jonasgroll.lootscaler.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": ["LootPoolMixin"],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

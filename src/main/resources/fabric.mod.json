@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "loot-scaler",
+  "version": "${version}",
+  "name": "Loot Scaler",
+  "description": "Ores and mobs give less, so a world lasts longer. Amounts and the Fortune bonus are scaled, never the chance to drop — a single ore never comes up empty. Set your numbers in config/loot-scaler.properties.",
+  "authors": ["Dschonas04"],
+  "contact": {
+    "homepage": "https://github.com/Dschonas04/loot-scaler",
+    "sources": "https://github.com/Dschonas04/loot-scaler",
+    "issues": "https://github.com/Dschonas04/loot-scaler/issues"
+  },
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["de.jonasgroll.lootscaler.LootScaler"]
+  },
+  "mixins": ["loot-scaler.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.19.0",
+    "minecraft": ">=1.21",
+    "java": ">=21"
+  }
+}
