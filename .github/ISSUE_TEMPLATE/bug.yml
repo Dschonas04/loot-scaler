@@ -1,0 +1,29 @@
+name: Bug report
+description: Something does not work as described
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, what happened instead?
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      placeholder: "Loot Scaler 1.2.2, Minecraft 26.2, Fabric Loader 0.19.5"
+    validations:
+      required: true
+  - type: dropdown
+    id: side
+    attributes:
+      label: Where
+      options: [Dedicated server, Single player, Both]
+  - type: textarea
+    id: log
+    attributes:
+      label: Log or crash report
+      description: The relevant part of logs/latest.log or the crash report.
+      render: text
